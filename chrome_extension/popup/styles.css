@@ -1,10 +1,10 @@
 body {
   font-family: "Arial", sans-serif;
-  margin: 4px;
-  padding: 4px;
+  margin: 0;
+  padding: 0;
   border-radius: 8px;
-  width: 320px;
-  height: 400px;
+  width: 400px;
+  height: 600px;
   display: flex;
   flex-direction: column;
 }
@@ -14,6 +14,24 @@ body {
   flex-direction: column;
   height: 100%;
   padding: 16px;
+  position: relative;
+  background: #f7f7ff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.title h1 {
+  font-size: 24px;
+  color: #380e14;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .chat-area {
@@ -23,8 +41,11 @@ body {
   border-radius: 16px;
   padding: 16px;
   overflow-y: auto;
-  height: 300px;
   gap: 8px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .chat-message {
@@ -32,12 +53,15 @@ body {
   padding: 8px 12px;
   border-radius: 8px;
   margin: 4px 0;
+  display: flex;
+  align-items: center;
 }
 
 .user-message {
   background-color: #d1ecf1;
   align-self: flex-end;
   text-align: right;
+  margin-left: auto;
 }
 
 .bot-message {
@@ -48,29 +72,48 @@ body {
 
 .input-container {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   padding: 16px;
+  gap: 8px;
 }
 
 #user-input {
-  width: 80%;
-  padding: 16px;
+  width: 100%;
+  padding: 12px;
   border: 1px solid #cacaca;
   border-radius: 8px;
   font-size: 12px;
+  box-sizing: border-box;
 }
 
 #send-btn {
-  width: 30%;
+  width: 100%;
   background-color: #380e14;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 12px;
-  margin: 4px;
+  padding: 12px;
+  transition: background-color 0.3s ease;
 }
 
 #send-btn:hover {
   background-color: #652932;
+}
+
+#clear-btn {
+  width: 100%;
+  background-color: #f8d7da;
+  color: #380e14;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 12px;
+  transition: background-color 0.3s ease;
+}
+
+#clear-btn:hover {
+  background-color: #f5c6cb;
 }
