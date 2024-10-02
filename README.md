@@ -1,5 +1,5 @@
 
-# MACEWAN_CHATBOT_CAPSTONE
+# MacEwan_Chatbot_ChromeExtension
 
 This project contains both the backend (Python FastAPI server) and the frontend (Chrome extension) for the MacEwan chatbot assitant.
 
