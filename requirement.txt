@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+langchain-community
+langchain-openai
+langchain-tools
+langchain-core
+langgraph
+openai
+pypdf
+chromadb
