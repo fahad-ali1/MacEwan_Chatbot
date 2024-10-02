@@ -20,25 +20,59 @@ document
  * - Generates a bot message and appends it as well
  * - Saves the updated chat history to local storage
  */
-function sendMessage() {
+async function sendMessage() {
   const userInput = document.getElementById("user-input").value;
   const chatArea = document.getElementById("chat-area");
 
   if (userInput) {
+    // Append user message to chat area
     const userMessage = document.createElement("div");
     userMessage.className = "chat-message user-message";
     userMessage.textContent = userInput;
     chatArea.appendChild(userMessage);
 
-    const botMessage = document.createElement("div");
-    botMessage.className = "chat-message bot-message";
-    botMessage.textContent = "Bot: This is a bot response";
-    chatArea.appendChild(botMessage);
+    // Create and append typing indicator
+    const typingIndicator = document.createElement("div");
+    typingIndicator.className = "chat-message bot-message typing-indicator";
+    typingIndicator.textContent = "Bot is typing...";
+    chatArea.appendChild(typingIndicator);
 
+    // Scroll to the bottom of the chat area
     chatArea.scrollTop = chatArea.scrollHeight;
-    document.getElementById("user-input").value = "";
 
+    // Call the backend API
+    try {
+      // Fetch the bot response from the backend API (local host testing)
+      const response = await fetch(
+        `http://127.0.0.1:8000/query/?query=${encodeURIComponent(userInput)}`
+      );
+      const data = await response.json();
+      chatArea.removeChild(typingIndicator);
+
+      // Append bot message to chat area
+      const botMessage = document.createElement("div");
+      botMessage.className = "chat-message bot-message";
+      botMessage.textContent = `Bot: ${
+        data.response || "No response from bot."
+      }`; // Display the bot response
+      chatArea.appendChild(botMessage);
+    } catch (error) {
+      console.error("Error:", error);
+      chatArea.removeChild(typingIndicator);
+
+      const errorMessage = document.createElement("div");
+      errorMessage.className = "chat-message bot-message";
+      errorMessage.textContent =
+        "Bot: Sorry, there was an error processing your query.";
+      chatArea.appendChild(errorMessage);
+    }
+
+    // Clear the input field and save the chat
+    document.getElementById("user-input").value = "";
     saveChat();
+
+    // Scroll to the bottom of the chat area
+    chatArea.scrollTop = chatArea.scrollHeight;
   }
 }
 

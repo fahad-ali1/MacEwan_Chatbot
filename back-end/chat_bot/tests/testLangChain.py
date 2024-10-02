@@ -10,7 +10,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 
 # Load pdf and split pages
-loader = PyPDFLoader("chat_bot/testData.pdf")
+loader = PyPDFLoader("back-end/chat_bot/tests/testData.pdf")
 pages = loader.load_and_split()
 # print(pages[0])
 
