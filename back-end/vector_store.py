@@ -41,7 +41,7 @@ index = pc.Index(index_name)
 # Initialize Hugging Face Embeddings and Pinecone Vector Store, uncomment which embedding you want to use,
 # make sure to use correct dimmension and change index name accordingly
 
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+embeddings = OpenAIEmbeddings()
 # embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",
 #                                    multi_process=True,
 #                                    encode_kwargs={"normalize_embeddings": True},
