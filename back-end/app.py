@@ -93,6 +93,9 @@ from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from dotenv import load_dotenv
 import os
 
+from langchain.chains import RetrievalQAWithSourcesChain  
+from langchain.prompts import PromptTemplate
+
 # Load environment variables
 load_dotenv()
 
@@ -134,27 +137,55 @@ llm = HuggingFaceEndpoint(
     repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
     task="text-generation",
     huggingfacehub_api_token=hf_api_token,
-    max_new_tokens = 200,
+    max_new_tokens = 1000,
     temperature = 1,
     )
+
+# prompt_template = """You are a helpful university assistant. Do not say according to context or sources, etc. in your answer.
+#                  Respond only to the question asked, response should be concise and relevant to the question with only thte response and no 
+#                  filler words or expression.
+#                  If the answer cannot be deduced from the context, say you cannot answer this.
+                 
+# Context: {context}
+
+# Question: {question}
+
+# Answer:
+# """
+
+# PROMPT = PromptTemplate(
+#  template=prompt_template, input_variables=["context", "question"]
+# )
+
+# qa_with_sources = RetrievalQAWithSourcesChain.from_chain_type(  
+#     llm=llm,  
+#     chain_type="stuff",  
+#     retriever=vector_store.as_retriever()  
+# )  
+
+# qa = RetrievalQA.from_chain_type(  
+#     llm=llm,  
+#     chain_type="stuff",  
+#     retriever=vector_store.as_retriever()  
+# )
 
 @app.get("/query/")
 async def query_chat_bot(query: str):
     try:
         # Use the similarity search to retrieve relevant documents
-        docs = vector_store.similarity_search(query, k=12)
+        docs = vector_store.similarity_search(query, k=20)
 
         # Combine the content of all retrieved documents as the context
         context = "\n\n".join([doc.page_content for doc in docs])
 
-        messages = [
+        prompt = [
             {
                 "role": "system",
                 "content": 
-                '''You are a helpful university assistant. Do not say according to context or sources in your answer.
-                Respond only to the question asked, response should be concise and relevant to the question.
-                Provide the number of the source document when relevant.
-                If the answer cannot be deduced from the context, do not give an answer.
+                '''You are a helpful university assistant. Do not say according to context or sources, etc. in your answer.
+                Respond only to the question asked, response should be concise and relevant to the question with only thte response and no 
+                filler words or expression.
+                If the answer cannot be deduced from the context, say you cannot answer this.
                 '''
             },
             {
@@ -166,14 +197,15 @@ async def query_chat_bot(query: str):
                 "content": query
             }
         ]
-
-        response = llm.invoke(messages)
+    
+        # response = llm.invoke(prompt)
         chat_model = ChatHuggingFace(llm=llm)
-        msg = chat_model.invoke(messages)
+        msg = chat_model.invoke(prompt)
         # Access the content of the AI message
         # print(response)
-        print(msg)
-        return JSONResponse(content={"response": response})
+        # result = qa_with_sources.invoke({"question": query})
+        # print(result)
+        return JSONResponse(content={"response": msg.content})
 
     except Exception as e:
         import traceback
