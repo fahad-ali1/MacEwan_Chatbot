@@ -12,6 +12,17 @@ document
       sendMessage();
     }
   });
+
+// Generate a unique session ID, store it in localStorage
+function getSessionId() {
+  let sessionId = localStorage.getItem("session_id");
+  if (!sessionId) {
+    sessionId = `session_${Math.random().toString(36).substring(2, 15)}`;
+    localStorage.setItem("session_id", sessionId);
+  }
+  return sessionId;
+}
+
 /**
  * Function to send the user message to the chat area and display a bot response.
  * - Retrieves the user input
@@ -25,6 +36,7 @@ async function sendMessage() {
 
   if (userInput) {
     // Append user message to chat area
+    const sessionId = getSessionId();  // Get the session ID
     const userMessage = document.createElement("div");
     userMessage.className = "chat-message user-message";
     userMessage.textContent = userInput;
@@ -41,9 +53,13 @@ async function sendMessage() {
 
     // Call the backend API
     try {
-      // Fetch the bot response from the backend API (local host testing)
       const response = await fetch(
-        `http://127.0.0.1:8000/query/?query=${encodeURIComponent(userInput)}`
+        `http://127.0.0.1:8000/query/?query=${encodeURIComponent(userInput)}&session_id=${sessionId}`, 
+        {
+          headers: {
+            "Session-ID": sessionId  // Pass the current session
+          }
+        }
       );
 
       // Check for HTTP errors

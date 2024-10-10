@@ -73,7 +73,7 @@
 #         raise HTTPException(status_code=500, detail=str(e))
 
 # ------------- the following code is to using Cohere LLM, Pinecone, Hugginface Embeddings and Langchain -------------
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pinecone import Pinecone
@@ -147,11 +147,11 @@ retriever = vector_store.as_retriever(
 
 # Define prompt to contextualize user questions
 contextualize_q_system_prompt = (
+    "Only answer based on the documents, no external information."
     "Given a chat history and the latest user question, "
     "which might reference context in the chat history, "
     "formulate a standalone question understandable without the history. "
     "Do NOT answer the question, just reformulate it or return it as is."
-    "Only answer based on the documents, no external information."
 )
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -169,10 +169,11 @@ history_aware_retriever = create_history_aware_retriever(
 
 # Define system prompt for Q&A
 system_prompt = (
+    "Only answer based on the documents, no external information. Be ethical, do not allow plagirism, do not write assignments or exams for students."
     "You are an assistant for university question-answering tasks. "
-    "Use the following retrieved context to answer the question. "
-    "If you don't know the answer, say so. Keep the answer concise."
-    "Only answer based on the documents, no external information."
+    "Use the following retrieved context to answer the question only, no external information, unless it relates to MacEwan University. "
+    "If you don't know the answer, say you cannot answer your question."
+    "Keep the answer concise."
     "\n\n"
     "{context}"
 )
@@ -218,23 +219,22 @@ workflow.add_node("model", call_model)
 memory = MemorySaver()
 res = workflow.compile(checkpointer=memory)
 
-# Configuration example for state workflow
-config = {"configurable": {"thread_id": "abc123"}}
-
 # API endpoint for querying the chat bot
 @app.get("/query/")
-async def query_chat_bot(query: str):
+async def query_chat_bot(query: str, request: Request):
+    session_id = request.headers.get("Session-ID") or request.query_params.get("session_id")
+
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID missing")
+
+    config = {"configurable": {"thread_id": session_id}}  # Use the session ID for threading
+
     try:   
         result = res.invoke({"input": query}, config=config)
         return JSONResponse(content={"response": result['answer']})
-    
-    except TooManyRequestsError as e:
-        return JSONResponse(
-            status_code=429,
-        )
 
+    except TooManyRequestsError:
+        return JSONResponse(status_code=429)
+    
     except Exception as e:
-        import traceback
-        print("An error occurred: ", str(e))
-        print("Traceback: ", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
