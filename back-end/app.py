@@ -1,24 +1,27 @@
-#  ------------- the following code is to test with OpenAI persitant pinecone data -------------
+#  ------------- the following code is to test with OpenAI, pinecone data -------------
 # from fastapi import FastAPI, HTTPException
 # from fastapi.responses import JSONResponse
 # from fastapi.middleware.cors import CORSMiddleware
 # from pinecone import Pinecone
 # from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 # from langchain_community.vectorstores import Pinecone as PineconeVectorStore
+# from langchain_core.prompts import ChatPromptTemplate
+# from langchain.chains.combine_documents import create_stuff_documents_chain
+# from langchain.chains import create_retrieval_chain
 # from dotenv import load_dotenv
 # import os
 
-# load_dotenv()
 
-# # Load OpenAI and Pinecone API keys from environment variables
-# api_key = os.getenv("OPENAI_API_KEY")
+# # Load environment variables
+# load_dotenv()
+# open_ai_key = os.getenv("OPENAI_API_KEY")
 # pinecone_api_key = os.getenv("PINECONE_API_KEY")
 
+# # Initialize FastAPI app
 # app = FastAPI()
 
-# # Add CORS middleware to allow requests from Chrome extension
-# origins = ["chrome-extension://hababammnbldmejcfphcldkhkfojdina"]
-
+# # Configure CORS
+# origins = ["chrome-extension://*"]
 # app.add_middleware(
 #     CORSMiddleware,
 #     allow_origins=origins,
@@ -27,84 +30,77 @@
 #     allow_headers=["*"],
 # )
 
-# # Initialize embeddings using OpenAI
+# # Initialize OpenAI embeddings and Pinecone client
 # embeddings = OpenAIEmbeddings()
-
-# # Initialize Pinecone client and connect to the existing index
 # pc = Pinecone(api_key=pinecone_api_key)
 # index_name = "macewan-vectors-openaiembeddings"
 
-# # Create Pinecone Vector Store from existing index
-# vector_store = PineconeVectorStore.from_existing_index(
-#     index_name=index_name,
-#     embedding=embeddings,
-# )
+# # Create Pinecone Vector Store
+# vector_store = PineconeVectorStore.from_existing_index(index_name=index_name, embedding=embeddings)
 
-# # Endpoint to handle a basic query
+# # Initialize language model
+# llm = ChatOpenAI(api_key=open_ai_key, model="gpt-4o-mini", temperature=0)
+
+# # Define prompt template
+# prompt_template = """
+#     Answer the following question based only on the provided context. 
+#     Think step by step before providing a detailed answer. If you cannot give an answer, say you do not have the answer.
+#     <context>
+#     {context}
+#     </context>
+#     Question: {input}
+# """
+# prompt = ChatPromptTemplate.from_template(prompt_template)
+
+# # Create document chain and retriever
+# document_chain = create_stuff_documents_chain(llm, prompt)
+# retriever = vector_store.as_retriever(search_kwargs={"k": 8})
+
+# # Combine retriever and document chain into a retrieval chain
+# retrieval_chain = create_retrieval_chain(retriever, document_chain)
+
+# # Define endpoint for handling queries
 # @app.get("/query/")
 # async def query_chat_bot(query: str):
 #     try:
-#         # Use the similarity search to retrieve relevant documents
-#         docs = vector_store.similarity_search(query, k=15)
-
-#         # Combine the content of all retrieved documents as the context
-#         context = "\n\n".join([doc.page_content for doc in docs])
-#         # logging
-#         print(context) 
-
-#         # Prepare messages for the agent with the query and the retrieved document context
-#         messages = [
-#             {
-#                 "role": "system",
-#                 "content": "You are a helpful assistant. Only answer the question using the provided context. Do not use any external information, assumptions, or personal opinions. If the context does not provide an answer, say that you cannot provide a relevant answer based on the available documents."
-#             },
-#             {
-#                 "role": "system",
-#                 "content": f"Context:\n{context}" if context else "No relevant information was found."
-#             },
-#             {
-#                 "role": "user",
-#                 "content": query
-#             }
-#         ]
-
-#         # Initialize the ChatOpenAI model
-#         chat_model = ChatOpenAI(api_key=api_key)
-#         response = chat_model.invoke(messages)
-
-#         # Access the content of the AI message
-#         ai_message_content = response.content 
-#         return JSONResponse(content={"response": ai_message_content})
-
+#         response = retrieval_chain.invoke({"input": query})
+#         return JSONResponse(content={"response": response['answer']})
+    
 #     except Exception as e:
 #         import traceback
-#         print("An error occurred: ", str(e))
-#         print("Traceback: ", traceback.format_exc())
+#         print(f"An error occurred: {str(e)}")
+#         print("Traceback:", traceback.format_exc())
 #         raise HTTPException(status_code=500, detail=str(e))
 
-# ------------- the following code is to test with Hugging Face using pinecone -------------
+# ------------- the following code is to using Cohere LLM, Pinecone, Hugginface Embeddings and Langchain -------------
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pinecone import Pinecone
-from langchain_huggingface import HuggingFaceEndpointEmbeddings
-from langchain_community.vectorstores import Pinecone as PineconeVectorStore
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from dotenv import load_dotenv
 import os
 
-from langchain.chains import RetrievalQAWithSourcesChain  
-from langchain.prompts import PromptTemplate
+from langchain_cohere import ChatCohere
+from langchain.chains import create_history_aware_retriever, create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import START, StateGraph
+from langgraph.graph.message import add_messages
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
+from langchain_community.vectorstores import Pinecone as PineconeVectorStore
+
+from typing_extensions import Annotated, TypedDict
+from typing import Sequence
 
 # Load environment variables
 load_dotenv()
 
-# Add CORS middleware to allow requests from Chrome extension
-origins = [
-    "chrome-extension://hababammnbldmejcfphcldkhkfojdina"
-]
+# CORS middleware to allow Chrome extension requests
+origins = ["chrome-extension://hababammnbldmejcfphcldkhkfojdina"]
 
-# Initialize FastAPI
+# Initialize FastAPI app
 app = FastAPI()
 
 app.add_middleware(
@@ -115,98 +111,118 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pinecone API Key from environment variables
+# Load API keys from environment variables
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
+hf_api_token = os.getenv("HUGGINGFACE_API_TOKEN")  
+cohere_api_token = os.getenv("COHERE_API_TOKEN")
+
+# Initialize Pinecone with API key and connect to index
 pc = Pinecone(api_key=pinecone_api_key)
 index_name = "macewan-vectors-huggingface"
 index = pc.Index(index_name)
 
-hf_api_token = os.getenv("HUGGINGFACE_API_TOKEN")  
-
-# Initialize HuggingFace embeddings
-embeddings = HuggingFaceEndpointEmbeddings(model="sentence-transformers/all-MiniLM-L6-v2",
-                                           task="feature-extraction",
-                                           huggingfacehub_api_token=hf_api_token)
+# HuggingFace embeddings initialization
+embeddings = HuggingFaceEndpointEmbeddings(
+    model="sentence-transformers/all-MiniLM-L6-v2",
+    task="feature-extraction",
+    huggingfacehub_api_token=hf_api_token
+)
 
 # Create Pinecone Vector Store from existing index
 vector_store = PineconeVectorStore.from_existing_index(
     index_name=index_name,
     embedding=embeddings,
 )
-llm = HuggingFaceEndpoint(
-    repo_id="meta-llama/Meta-Llama-3-8B-Instruct",
-    task="text-generation",
-    huggingfacehub_api_token=hf_api_token,
-    max_new_tokens = 1000,
-    temperature = 1,
-    )
 
-# prompt_template = """You are a helpful university assistant. Do not say according to context or sources, etc. in your answer.
-#                  Respond only to the question asked, response should be concise and relevant to the question with only thte response and no 
-#                  filler words or expression.
-#                  If the answer cannot be deduced from the context, say you cannot answer this.
-                 
-# Context: {context}
+# Initialize Cohere LLM for chat
+llm = ChatCohere(model="command-r-plus")
 
-# Question: {question}
+# Configure retriever to retrieve based on similarity score threshold
+retriever = vector_store.as_retriever(
+    search_type="similarity_score_threshold",
+    search_kwargs={"k": 20, "score_threshold": 0.5},
+)
 
-# Answer:
-# """
+# Define prompt to contextualize user questions
+contextualize_q_system_prompt = (
+    "Given a chat history and the latest user question, "
+    "which might reference context in the chat history, "
+    "formulate a standalone question understandable without the history. "
+    "Do NOT answer the question, just reformulate it or return it as is."
+)
 
-# PROMPT = PromptTemplate(
-#  template=prompt_template, input_variables=["context", "question"]
-# )
+contextualize_q_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", contextualize_q_system_prompt),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ]
+)
 
-# qa_with_sources = RetrievalQAWithSourcesChain.from_chain_type(  
-#     llm=llm,  
-#     chain_type="stuff",  
-#     retriever=vector_store.as_retriever()  
-# )  
+# Create history-aware retriever with Cohere and Pinecone
+history_aware_retriever = create_history_aware_retriever(
+    llm, retriever, contextualize_q_prompt
+)
 
-# qa = RetrievalQA.from_chain_type(  
-#     llm=llm,  
-#     chain_type="stuff",  
-#     retriever=vector_store.as_retriever()  
-# )
+# Define system prompt for Q&A
+system_prompt = (
+    "You are an assistant for university question-answering tasks. "
+    "Use the following retrieved context to answer the question. "
+    "If you don't know the answer, say so. Keep the answer concise."
+    "\n\n"
+    "{context}"
+)
 
+# Create Q&A prompt template
+qa_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
+        MessagesPlaceholder("chat_history"),
+        ("human", "{input}"),
+    ]
+)
+
+# Combine retrieval and document processing into a chain
+question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
+rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+
+# State structure for managing chat history
+class State(TypedDict):
+    input: str
+    chat_history: Annotated[Sequence[BaseMessage], add_messages]
+    context: str
+    answer: str
+
+# Function to invoke the model and get a response
+def call_model(state: State):
+    response = rag_chain.invoke(state)
+    return {
+        "chat_history": [
+            HumanMessage(state["input"]),
+            AIMessage(response["answer"]),
+        ],
+        "context": response["context"],
+        "answer": response["answer"],
+    }
+
+# Workflow setup for stateful chat management
+workflow = StateGraph(state_schema=State)
+workflow.add_edge(START, "model")
+workflow.add_node("model", call_model)
+
+# Memory saving for checkpointing
+memory = MemorySaver()
+res = workflow.compile(checkpointer=memory)
+
+# Configuration example for state workflow
+config = {"configurable": {"thread_id": "abc123"}}
+
+# API endpoint for querying the chat bot
 @app.get("/query/")
 async def query_chat_bot(query: str):
-    try:
-        # Use the similarity search to retrieve relevant documents
-        docs = vector_store.similarity_search(query, k=20)
-
-        # Combine the content of all retrieved documents as the context
-        context = "\n\n".join([doc.page_content for doc in docs])
-
-        prompt = [
-            {
-                "role": "system",
-                "content": 
-                '''You are a helpful university assistant. Do not say according to context or sources, etc. in your answer.
-                Respond only to the question asked, response should be concise and relevant to the question with only thte response and no 
-                filler words or expression.
-                If the answer cannot be deduced from the context, say you cannot answer this.
-                '''
-            },
-            {
-                "role": "system",
-                "content": f"Context:\n{context}" if context else "No relevant information was found."
-            },
-            {
-                "role": "user",
-                "content": query
-            }
-        ]
-    
-        # response = llm.invoke(prompt)
-        chat_model = ChatHuggingFace(llm=llm)
-        msg = chat_model.invoke(prompt)
-        # Access the content of the AI message
-        # print(response)
-        # result = qa_with_sources.invoke({"question": query})
-        # print(result)
-        return JSONResponse(content={"response": msg.content})
-
+    try:   
+        result = res.invoke({"input": query}, config=config)
+        return JSONResponse(content={"response": result['answer']})
     except Exception as e:
         import traceback
         print("An error occurred: ", str(e))

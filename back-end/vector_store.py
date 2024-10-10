@@ -39,10 +39,7 @@ def main():
     # Initialize Hugging Face Embeddings and Pinecone Vector Store, NOTE: uncomment which embedding you want to use,
 
     # embeddings = OpenAIEmbeddings()
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",
-                                       multi_process=True,
-                                       encode_kwargs={"normalize_embeddings": True},
-                                       )
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     # Load PDF and split pages
     print("Loading PDF and splitting pages...")
@@ -52,12 +49,12 @@ def main():
     # Split the documents into chunks
     print("Splitting documents into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1200,
+        chunk_size=2000,
         chunk_overlap=200,
         length_function=len,
     )
-
     docs_chunks = text_splitter.split_documents(pages)
+
     print("Creating Pinecone Vector Store from documents...")
     PineconeVectorStore.from_documents(docs_chunks, embeddings, index_name=index_name)
     print("Pinecone Vector Store created successfully.")
