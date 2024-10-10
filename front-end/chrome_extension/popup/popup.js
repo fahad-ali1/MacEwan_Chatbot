@@ -13,6 +13,16 @@ document
     }
   });
 
+// Generate a unique session ID, store it in localStorage
+function getSessionId() {
+  let sessionId = localStorage.getItem("session_id");
+  if (!sessionId) {
+    sessionId = `session_${Math.random().toString(36).substring(2, 15)}`;
+    localStorage.setItem("session_id", sessionId);
+  }
+  return sessionId;
+}
+
 /**
  * Function to send the user message to the chat area and display a bot response.
  * - Retrieves the user input
@@ -26,6 +36,7 @@ async function sendMessage() {
 
   if (userInput) {
     // Append user message to chat area
+    const sessionId = getSessionId();  // Get the session ID
     const userMessage = document.createElement("div");
     userMessage.className = "chat-message user-message";
     userMessage.textContent = userInput;
@@ -42,28 +53,48 @@ async function sendMessage() {
 
     // Call the backend API
     try {
-      // Fetch the bot response from the backend API (local host testing)
       const response = await fetch(
-        `http://127.0.0.1:8000/query/?query=${encodeURIComponent(userInput)}`
+        `http://127.0.0.1:8000/query/?query=${encodeURIComponent(userInput)}&session_id=${sessionId}`, 
+        {
+          headers: {
+            "Session-ID": sessionId  // Pass the current session
+          }
+        }
       );
+
+      // Check for HTTP errors
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error("Too many requests. Please try again later.");
+        } else {
+          throw new Error("An error occurred while fetching the response.");
+        }
+      }
+
       const data = await response.json();
       chatArea.removeChild(typingIndicator);
 
       // Append bot message to chat area
       const botMessage = document.createElement("div");
       botMessage.className = "chat-message bot-message";
-      botMessage.textContent = `Bot: ${
-        data.response || "No response from bot."
-      }`; // Display the bot response
+      
+      // Check if data.response exists and is not empty
+      if (data.response) {
+        botMessage.textContent = `Bot: ${data.response}`; // Display the bot response
+      } else {
+        botMessage.textContent = "Bot: No response from bot."; 
+      }
+      
       chatArea.appendChild(botMessage);
     } catch (error) {
       console.error("Error:", error);
       chatArea.removeChild(typingIndicator);
 
+      // Display error message to the user
       const errorMessage = document.createElement("div");
       errorMessage.className = "chat-message bot-message";
-      errorMessage.textContent =
-        "Bot: Sorry, there was an error processing your query.";
+      errorMessage.textContent = `Bot: ${error.message}`;
+
       chatArea.appendChild(errorMessage);
     }
 
@@ -75,6 +106,7 @@ async function sendMessage() {
     chatArea.scrollTop = chatArea.scrollHeight;
   }
 }
+
 
 /**
  * Function to save the current chat history to the browser's local storage.
