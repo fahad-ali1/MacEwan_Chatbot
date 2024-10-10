@@ -91,6 +91,8 @@ from langgraph.graph.message import add_messages
 from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_community.vectorstores import Pinecone as PineconeVectorStore
 
+from cohere.errors import TooManyRequestsError
+
 from typing_extensions import Annotated, TypedDict
 from typing import Sequence
 
@@ -149,6 +151,7 @@ contextualize_q_system_prompt = (
     "which might reference context in the chat history, "
     "formulate a standalone question understandable without the history. "
     "Do NOT answer the question, just reformulate it or return it as is."
+    "Only answer based on the documents, no external information."
 )
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -169,6 +172,7 @@ system_prompt = (
     "You are an assistant for university question-answering tasks. "
     "Use the following retrieved context to answer the question. "
     "If you don't know the answer, say so. Keep the answer concise."
+    "Only answer based on the documents, no external information."
     "\n\n"
     "{context}"
 )
@@ -223,6 +227,12 @@ async def query_chat_bot(query: str):
     try:   
         result = res.invoke({"input": query}, config=config)
         return JSONResponse(content={"response": result['answer']})
+    
+    except TooManyRequestsError as e:
+        return JSONResponse(
+            status_code=429,
+        )
+
     except Exception as e:
         import traceback
         print("An error occurred: ", str(e))
