@@ -112,6 +112,9 @@ body {
   margin: 4px 0;
 }
 
+.user-message {display: flex;
+  align-items: flex-end;}
+
 .user-message p{
   margin: 20px 0;
   align-items: flex-end;
