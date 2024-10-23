@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!-- Development Website -->
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MacEwan University</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@48&display=swap"
+    />
+</head>
+<body>
+    <h1>Welcome to MacEwan University</h1>
+
+    <!-- Chatbot Icon -->
+    <div id="chatbot-icon" class="chatbot-icon" onclick="toggleChatbot()">
+      <span class="material-symbols-outlined">CLICK ME CHAT</span> 
+    </div>
+
+    <div class="chatbot-container">
+      <header>
+        <h3>MacEwan Assistant</h3>
+        <button id="exit-btn">&times;</button>
+      </header>
+      <div id="chat-area" class="chat-area">
+        <div class="chat bot-message">
+          <p>Hi there! How can I help you today?</p>
+        </div>
+      </div>
+      <div class="input-container">
+        <input
+          type="text"
+          id="user-input"
+          class="user-input"
+          placeholder="Type your message..."
+        />
+        <button id="send-btn">Send</button>
+        <button id="clear-btn">Clear</button>
+      </div>
+      <div class="typing-indicator" style="display: none;">Typing...</div>
+    </div>
+
+    <script src="chatbot.js"></script>
+</body>
+</html>
