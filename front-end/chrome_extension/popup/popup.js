@@ -1,8 +1,6 @@
-// Event listener for "Send" button - triggers the sendMessage function when clicked
-document.getElementById("send-btn").addEventListener("click", sendMessage);
 
-// Event listener for "Clear" button - triggers the clearChat function when clicked
-document.getElementById("clear-btn").addEventListener("click", clearChat);
+const chatInput = document.querySelector(".input-container input");
+
 
 // Adds an event listener to the input field that listens for the Enter key
 document
@@ -23,6 +21,31 @@ function getSessionId() {
   return sessionId;
 }
 
+const createChatList = (message, className) => {
+  // Create a chat <Li> element with passed message and classname
+  const chatList = document.createElement("li");
+  chatList.classList.add("chat", className);
+  let chatContent = className === "user-message" ? `<p>${message}</p>` : `<span class="material-symbols-outlined">smart_toy</span><p>${message}</p>`;
+  chatList.innerHTML = chatContent;
+  return chatList
+}
+
+const addMessage = () => {
+  // adds a Message into the message area
+  let userInput = chatInput.value.trim();
+  const chatArea = document.getElementById("chat-area");
+
+  if (userInput) {
+    // Append user message to chat area
+    const sessionId = getSessionId();  // Get the session ID
+    chatArea.appendChild(createChatList(userInput, "user-message"));
+  }
+}
+// Event listener for "Send" button - triggers the sendMessage function when clicked
+document.getElementById("send-btn").addEventListener("click", sendMessage);
+
+// Event listener for "Clear" button - triggers the clearChat function when clicked
+// document.getElementById("clear-btn").addEventListener("click", clearChat);
 /**
  * Function to send the user message to the chat area and display a bot response.
  * - Retrieves the user input
@@ -31,22 +54,20 @@ function getSessionId() {
  * - Saves the updated chat history to local storage
  */
 async function sendMessage() {
-  const userInput = document.getElementById("user-input").value;
+  const userInput = document.getElementById("user-input").value.trim();
   const chatArea = document.getElementById("chat-area");
 
   if (userInput) {
     // Append user message to chat area
     const sessionId = getSessionId();  // Get the session ID
-    const userMessage = document.createElement("div");
-    userMessage.className = "chat-message user-message";
-    userMessage.textContent = userInput;
-    chatArea.appendChild(userMessage);
+    chatArea.appendChild(createChatList(userInput, "user-message"));
 
     // Create and append typing indicator
     const typingIndicator = document.createElement("div");
     typingIndicator.className = "chat-message bot-message typing-indicator";
     typingIndicator.textContent = "Bot is typing...";
-    chatArea.appendChild(typingIndicator);
+    // let botMessage = "bababooey";
+    chatArea.appendChild(createChatList("bababooey", "bot-message"));
 
     // Scroll to the bottom of the chat area
     chatArea.scrollTop = chatArea.scrollHeight;
@@ -146,6 +167,6 @@ window.addEventListener("load", loadChat);
  * Temporary testing function to reload the Chrome extension programmatically.
  * This button is only for development and testing purposes.
  */
-document.getElementById("reload-btn").addEventListener("click", () => {
-  chrome.runtime.reload();
-});
+// document.getElementById("reload-btn").addEventListener("click", () => {
+//   chrome.runtime.reload();
+// });

@@ -122,12 +122,14 @@ body {
   
 }
 
-.chat-area .input-container {
+.chatbot-container .input-container {
   position: absolute;
   bottom: 0;
   width: 100%;
   padding: 5px 20px;
   border-top: 1px solid #ccc;
+  display:flex;
+  gap: 5px;
   
   /* display: flex; */
   /* flex-direction: column; */
@@ -135,7 +137,7 @@ body {
   /* gap: 8px; */
 }
 
-.chat-area .user-input{
+.chatbot-container input{
   height: 55px;
   width: 100%;
   border: none;
@@ -145,13 +147,19 @@ body {
   padding: 16px 15px 16px 0;
 }
 
-.chat-area span {
+.chatbot-container .input-container span {
   align-self: flex-end;
   height: 55px;
+  line-height: 55px;
   color: #380e14;
   font-size: 1.35rem;
   cursor: pointer;
-  background: red;
+  visibility: hidden;
+  /* background: red; */
+}
+
+.chatbot-container input:valid ~ span{
+  visibility: visible;
 }
 /* .chatbot-container .chat-area {
   flex-grow: 1;
@@ -169,14 +177,14 @@ body {
 
 
 
-#user-input {
+/* #user-input {
   width: 100%;
   padding: 12px;
   border: 1px solid #cacaca;
   border-radius: 8px;
   font-size: 12px;
   box-sizing: border-box;
-}
+} */
 
 /* #send-btn {
   width: 100%;

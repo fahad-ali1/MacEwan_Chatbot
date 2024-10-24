@@ -8,11 +8,30 @@ function toggleChatbot() {
     }
 }
 
+// toggle chat bot on and off
+const chatbotToggler = document.querySelector(".chatbot-toggler");
+chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"))
+
+const createChatList = (message, className) => {
+    // Create a chat <Li> element with passed message and classname
+    const chatList = document.createElement("li");
+    if (className.includes("bot-message typing-indicator")) {
+        chatList.classList.add("chat", "bot-message", "typing-indicator")
+    }
+    else {
+        chatList.classList.add("chat", className);
+    }  
+    let chatContent = className === "user-message" ? `<p>${message}</p>` : `<span class="material-symbols-outlined">smart_toy</span><p>${message}</p>`;
+    chatList.innerHTML = chatContent;
+    return chatList
+  }
+
+
 // Event listener for the exit button
-document.getElementById("exit-btn").addEventListener("click", function () {
-    const chatbotContainer = document.querySelector('.chatbot-container');
-    chatbotContainer.style.display = 'none'; // Hide the chatbot
-});
+// document.getElementById("exit-btn").addEventListener("click", function () {
+//     const chatbotContainer = document.querySelector('.chatbot-container');
+//     chatbotContainer.style.display = 'none'; // Hide the chatbot
+// });
 
 // Event listeners for the send button and input field
 document.getElementById("send-btn").addEventListener("click", sendMessage);
@@ -52,6 +71,7 @@ function enableInput() {
     userInput.focus();
 }
 
+
 /**
  * Function to send the user message to the chat area and display a bot response.
  * - Retrieves the user input
@@ -64,14 +84,15 @@ function enableInput() {
 
     if (userInput) {
         const sessionId = getSessionId();
-        const userMessage = document.createElement("div");
-        userMessage.className = "chat user-message";
-        userMessage.innerHTML = `<p>${userInput}</p>`;
-        chatArea.appendChild(userMessage);
+        // const userMessage = document.createElement("div");
+        // userMessage.className = "chat user-message";
+        // userMessage.innerHTML = `<p>${userInput}</p>`;
+        chatArea.appendChild(createChatList(userInput, "user-message"));
 
-        const typingIndicator = document.createElement("div");
-        typingIndicator.className = "chat bot-message typing-indicator";
-        typingIndicator.innerHTML = `<p>Bot is typing...</p>`;
+        // const typingIndicator = document.createElement("div");
+        // typingIndicator.className = "chat bot-message typing-indicator";
+        // typingIndicator.innerHTML = `<span class="material-symbols-outlined">smart_toy</span><p>. . . .</p>`;
+        let typingIndicator =createChatList(". . . .", "bot-message typing-indicator")
         chatArea.appendChild(typingIndicator);
         chatArea.scrollTop = chatArea.scrollHeight;
 
@@ -95,18 +116,18 @@ function enableInput() {
             const data = await response.json();
             chatArea.removeChild(typingIndicator);
 
-            const botMessage = document.createElement("div");
-            botMessage.className = "chat bot-message";
-            botMessage.innerHTML = `<p>Bot: ${data.response || "No response available."}</p>`;
-            chatArea.appendChild(botMessage);
+            // const botMessage = document.createElement("div");
+            // botMessage.className = "chat bot-message";
+            // botMessage.innerHTML = `<span class="material-symbols-outlined">smart_toy</span><p>${data.response || "No response available."}</p>`;
+            chatArea.appendChild(createChatList(data.response, "bot-message"));
         } catch (error) {
             console.error("Error:", error);
             chatArea.removeChild(typingIndicator);
 
-            const errorMessage = document.createElement("div");
-            errorMessage.className = "chat bot-message";
-            errorMessage.innerHTML = `<p>Bot: ${error.message}</p>`;
-            chatArea.appendChild(errorMessage);
+            // const errorMessage = document.createElement("div");
+            // errorMessage.className = "chat bot-message";
+            // errorMessage.innerHTML = `<span class="material-symbols-outlined">smart_toy</span><p>${error.message}</p>`;
+            chatArea.appendChild(createChatList(error.message, "bot-message"));
         }
 
         // Clear the input after sending the message
@@ -136,8 +157,10 @@ function loadChat() {
 
 // Clear chat history from localStorage
 function clearChat() {
+    const chatArea = document.getElementById("chat-area");
     localStorage.removeItem("chatHistory");
     document.getElementById("chat-area").innerHTML = "";
+    chatArea.appendChild(createChatList("Hi there! How can I help you today?", "bot-message"))
 }
 
 // Load chat history on page load
