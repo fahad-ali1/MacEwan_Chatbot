@@ -100,7 +100,7 @@ from typing import Sequence
 load_dotenv()
 
 # CORS middleware to allow Chrome extension requests
-origins = ["chrome-extension://hababammnbldmejcfphcldkhkfojdina"]
+origins = ["*"]
 
 # Initialize FastAPI app
 app = FastAPI()
