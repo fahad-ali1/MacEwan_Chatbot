@@ -3,11 +3,10 @@ from dotenv import load_dotenv
 import os
 from pinecone import Pinecone, ServerlessSpec
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_openai import OpenAIEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Pinecone as PineconeVectorStore
+from datetime import datetime
+# from langchain_openai import OpenAIEmbeddings
 
 # Load environment variables
 load_dotenv()
@@ -24,39 +23,48 @@ def main():
 
     existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
 
-    if index_name not in existing_indexes:
-        pc.create_index(
-            name=index_name,
-            dimension=384,
-            # NOTE: Uncomment and use 1536 for OpenAI embeddings, 384 for HuggingFace
-            # dimension=1536,
-            metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1"),
-        )
-        while not pc.describe_index(index_name).status["ready"]:
-            time.sleep(1)
+    # Delete index if it exists for fresh data
+    if index_name in existing_indexes:
+        print(f"Deleting '{index_name}' to create fresh data...")
+        pc.delete_index(index_name)
 
-    # Initialize Hugging Face Embeddings and Pinecone Vector Store, NOTE: uncomment which embedding you want to use,
+    pc.create_index(
+        name=index_name,
+        dimension=384,
+        # NOTE: Uncomment and use 1536 for OpenAI embeddings, 384 for HuggingFace
+        # dimension=1536,
+        metric="cosine",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+    while not pc.describe_index(index_name).status["ready"]:
+        time.sleep(1)
 
+    # Initialize Hugging Face Embeddings 
+    # NOTE: uncomment which embedding you want to use
     # embeddings = OpenAIEmbeddings()
     embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-    # Load PDF and split pages
-    print("Loading PDF and splitting pages...")
-    loader = PyPDFLoader("back-end/chat_bot/tests/testData.pdf")
-    pages = loader.load_and_split()
+    # Load text file and split content
+    print("Loading text file...")
+    with open("back-end/chat_bot/crawlers/MacewanData.txt", "r", encoding="utf-8") as file:
+        content = file.read()
 
-    # Split the documents into chunks
-    print("Splitting documents into chunks...")
+    # Split the text into chunks
+    print("Splitting text into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=2000,
+        chunk_size=1200,
         chunk_overlap=200,
         length_function=len,
     )
-    docs_chunks = text_splitter.split_documents(pages)
+    docs_chunks = text_splitter.split_text(content)
 
-    print("Creating Pinecone Vector Store from documents...")
-    PineconeVectorStore.from_documents(docs_chunks, embeddings, index_name=index_name)
+    # Create metadata with timestamps for each document chunk
+    print("Creating metadata with timestamps...")
+    timestamps = [datetime.now().strftime("%Y-%m-%d T%H:%M:%S") for _ in docs_chunks]
+    metadatas = [{"timestamp": ts} for ts in timestamps]
+
+    print("Creating Pinecone Vector Store from text chunks...")
+    PineconeVectorStore.from_texts(docs_chunks, embeddings, metadatas=metadatas, index_name=index_name)
     print("Pinecone Vector Store created successfully.")
 
 if __name__ == "__main__":
