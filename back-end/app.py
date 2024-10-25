@@ -151,7 +151,7 @@ contextualize_q_system_prompt = (
     "Given a chat history and the latest user question, "
     "which might reference context in the chat history, "
     "formulate a standalone question understandable without the history. "
-    "Do NOT answer the question, just reformulate it or return it as is."
+    "Do NOT answer the question, just reformulate i t or return it as is."
 )
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -169,9 +169,9 @@ history_aware_retriever = create_history_aware_retriever(
 
 # Define system prompt for Q&A
 system_prompt = (
-    "Only answer based on the documents, no external information. Be ethical, do not allow plagirism, do not write assignments or exams for students."
-    "You are an assistant for university question-answering tasks. "
-    "Use the following retrieved context to answer the question only, no external information, unless it relates to MacEwan University. "
+    "You are an assistant for university answer questions to students, do not mention the context or text in your response."
+    "Only answer based on the context, no external information. Be ethical, do not allow plagirism, do not write assignments or exams for students."
+    "Use the following retrieved context to answer the question only, no external information at all. You may use external information if it directly relates to macewan university."
     "If you don't know the answer, say you cannot answer your question."
     "Keep the answer concise."
     "\n\n"
@@ -219,22 +219,35 @@ workflow.add_node("model", call_model)
 memory = MemorySaver()
 res = workflow.compile(checkpointer=memory)
 
+# Error handling function
+def handle_error(e):
+    if isinstance(e, TooManyRequestsError):
+        return JSONResponse(
+            content={
+                "error": "Too many requests",
+                "status_code": 429,
+                "message": str(e)
+            },
+            status_code=429
+        )
+    return JSONResponse(
+        content={
+            "error": "Internal server error",
+            "status_code": 500,
+            "message": str(e)
+        },
+        status_code=500
+    )
+
 # API endpoint for querying the chat bot
 @app.get("/query/")
 async def query_chat_bot(query: str, request: Request):
     session_id = request.headers.get("Session-ID") or request.query_params.get("session_id")
-
     if not session_id:
         raise HTTPException(status_code=400, detail="Session ID missing")
-
-    config = {"configurable": {"thread_id": session_id}}  # Use the session ID for threading
-
+    config = {"configurable": {"thread_id": session_id}} 
     try:   
         result = res.invoke({"input": query}, config=config)
         return JSONResponse(content={"response": result['answer']})
-
-    except TooManyRequestsError:
-        return JSONResponse(status_code=429)
-    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+            return handle_error(e)
