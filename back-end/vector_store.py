@@ -52,8 +52,8 @@ def main():
     # Split the text into chunks
     print("Splitting text into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1200,
-        chunk_overlap=200,
+        chunk_size=2500,
+        chunk_overlap=500,
         length_function=len,
     )
     docs_chunks = text_splitter.split_text(content)
