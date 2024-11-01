@@ -6,6 +6,13 @@ import PyPDF2
 import io
 import re
 import os
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
 """
 This function uses beautiful soup to extract the text from a given page.
 
@@ -63,45 +70,62 @@ Returns:
     visited_pages: a list of unique pages beloning to the domain
 """
 def get_all_pages(url, max_pages=2000):
-    pages_to_visit = [url]  # List of URLs to visit
-    visited_pages = set()   # Set of already visited pages
-    domain = urlparse(url).netloc  # Extract domain to limit the crawling scope
+    # Setup Selenium WebDriver
+    options = Options()
+    options.add_argument("--headless")  # Run in headless mode (no browser UI)
+    driver = webdriver.Chrome(service=Service("C:\\Users\\bigba\\OneDrive\\Desktop\\chromedriver-win64\\chromedriver.exe"), options=options)
+    
+    pages_to_visit = [url] # List of URLs to visit
+    visited_pages = set() # Set of already visited pages
+    domain = urlparse(url).netloc # Extract domain to limit the crawling scope
     disallowed_extensions = re.compile(r'.*\.(pdf|jpg|jpeg|png|gif|svg|mp4|mp3|zip)$', re.IGNORECASE)
+    
+    try:
+        while pages_to_visit and len(visited_pages) < max_pages:
+            current_url = pages_to_visit.pop(0) # Get the next url to crawl
 
-    while pages_to_visit and len(visited_pages) < max_pages:
-        current_url = pages_to_visit.pop(0)  # Get the next URL to crawl
+            #visited_pages.add(current_url)
+            
+            if current_url in visited_pages or disallowed_extensions.match(current_url) or "campus-life" in current_url:
+                continue
 
-        if current_url in visited_pages or disallowed_extensions.match(current_url):
-            continue  # Skip if this page was already visited or is a non-HTML resource
-        
-        try:
-            response = requests.get(current_url, timeout=10)
-            response.raise_for_status()  # Ensure the page was retrieved successfully
-        except requests.RequestException as e:
-            print(f"Failed to retrieve {current_url}: {e}")
-            continue
+            visited_pages.add(current_url)
+            
+            driver.get(current_url)
 
-        # Only process HTML content
-        if 'text/html' not in response.headers.get('Content-Type', ''):
-            continue
+            #Wait for page to load
+            WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.TAG_NAME, 'a')))
 
-        visited_pages.add(current_url)
-        soup = BeautifulSoup(response.text, 'html.parser')
 
-        # Get the links on the page
-        for link in soup.find_all('a', href=True):
-            full_url = urljoin(current_url, link['href'])  # Convert relative URLs to absolute URLs
+            # Only process HTML content
+            if 'text/html' not in driver.execute_script("return document.contentType;"):
+                continue
 
-            # Make sure URL is from the same domain
-            if urlparse(full_url).netloc == domain and full_url not in visited_pages:
-                if not disallowed_extensions.match(full_url):  # Skip non-HTML resources
-                    pages_to_visit.append(full_url)
-                    print(full_url)
+            #visited_pages.add(current_url)
+            
+            # Get the links on the page
+            links = driver.find_elements(By.TAG_NAME, 'a')
+            for link in links:
+                try:
+                    href = link.get_attribute('href')
+                    if href:
+                        full_url = urljoin(current_url, href) # Convert relative URLs to absolute URLs
 
-        # Remove duplicates from the pages to visit
-        pages_to_visit = list(set(pages_to_visit))
+                        # Make sure URL is from the same domain
+                        if urlparse(full_url).netloc == domain and full_url not in visited_pages:
+                            if not disallowed_extensions.match(full_url): # Skip non-html resoruces
+                                pages_to_visit.append(full_url)
+                                print(full_url)
+                except Exception as e:
+                    print(f"Error processing link: {e}")
 
-    return list(visited_pages) 
+            # Remove duplicates from the pages to visit
+            pages_to_visit = list(set(pages_to_visit))
+
+    finally:
+        driver.quit()
+
+    return list(visited_pages)
 
 """
 This function takes a list of urls, and outputs their text contents into 
@@ -144,9 +168,15 @@ def linkToText(links):
             
 
 if __name__ == "__main__":
-    pages = get_all_pages("https://www.macewan.ca", 2000)
+    start_time = time.time()
+    pages = get_all_pages("https://www.macewan.ca", 4000)
+    end_time = time.time()
+    duration_seconds = end_time - start_time
+    hours = int(duration_seconds // 3600)
+    minutes = int((duration_seconds % 3600) // 60)
     print(f"Pages found: {pages}")
     print(f"Pages found: {len(pages)}")
+    print(f"Completed in {hours} hours and {minutes} minutes")
 
     linkToText(pages)
 
