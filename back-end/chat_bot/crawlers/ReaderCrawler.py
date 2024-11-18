@@ -155,7 +155,7 @@ Parameters:
 def linkToText_new(links):
     # Get the current directory and path to text file
     cwd = os.path.dirname(os.path.realpath(__file__))
-    filepath = os.path.join(cwd, "MacewanData.txt")
+    filepath = os.path.join(cwd, "deebleData.txt")
 
     # Setup Selenium (Chrome) with headless option
     options = Options()
@@ -167,22 +167,23 @@ def linkToText_new(links):
     def process_link(link):
         # Use Selenium to fetch the page content
         driver.get(link)
-        html = driver.page_source  # Get rendered HTML
 
-        # Parse HTML with BeautifulSoup
-        soup = BeautifulSoup(html, 'html.parser')
+         # Wait until the main content is loaded
+        try:
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            )
+        except:
+            print(f"Error: Timeout loading {link}")
+            return ""
+        
+        # Collect text from multiple tags
+        text_elements = driver.find_elements(By.XPATH, "//p | //div | //span | //h1 | //h2 | //h3")
+        page_text = "\n".join([element.text for element in text_elements if element.text.strip()])
 
-        # Remove unnecessary tags
-        for script in soup(["script", "style", "noscript", "meta"]):
-            script.extract()
-
-        # Convert HTML to text in markdown format
-        html = str(soup)
-        html2text_instance = html2text.HTML2Text()
-        html2text_instance.images_to_alt = True
-        html2text_instance.body_width = 0
-        html2text_instance.single_line_break = True
-        page_text = html2text_instance.handle(html)
+        # Remove duplicate lines by converting text to a set, then back to a sorted list
+        unique_lines = list(set(page_text.splitlines()))
+        page_text = "\n".join(unique_lines)
 
         # Define header and footer identifiers
         startpage = "\n\n__" 
@@ -214,27 +215,119 @@ def linkToText_new(links):
     # Close the browser after all links are processed
     driver.quit()
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# Function to initialize a single WebDriver and get text from one URL
+def get_page_text_sel(url):
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    service = Service("C:\\Users\\bigba\\OneDrive\\Desktop\\chromedriver-win64\\chromedriver.exe")  # Replace with the path to your chromedriver
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    
+    page_text = None
+    try:
+        print(f"Checking {url}")
+        driver.get(url)
+        #time.sleep(2)  # Wait for page to load; adjust if needed
+        page_text = driver.find_element(By.TAG_NAME, "body").text
+    except Exception as e:
+        print(f"Error processing {url}: {e}")
+    finally:
+        driver.quit()
+    
+    return url, page_text
+
+# Function to process a list of URLs concurrently
+def get_text_from_multiple_pages(urls, output_file, max_workers=10):
+    with open(output_file, "w", encoding="utf-8") as f:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all URL tasks to the executor
+            future_to_url = {executor.submit(get_page_text_sel, url): url for url in urls}
+            
+            # As each task completes, write the result to the file
+            for future in as_completed(future_to_url):
+                url, text = future.result()
+                if text:
+                    f.write(f"URL: {url}\n")
+                    f.write(f"Text:\n{text}\n")
+                    f.write("="*80 + "\n")  # Separator line between entries
+                else:
+                    f.write(f"URL: {url}\n")
+                    f.write("No text found or an error occurred.\n")
+                    f.write("="*80 + "\n")  # Separator line between entries
+
+
+def count_separator_in_file():
+    """
+    Counts the occurrences of the string '================================================================================'
+    in a text file.
+
+    Parameters:
+        file_path (str): The path to the text file.
+
+    Returns:
+        int: The number of occurrences of the separator.
+    """
+    separator = "=" * 80  # Define the separator string
+    count = 0
+
+    cwd = os.path.dirname(os.path.realpath(__file__))
+    file_path = os.path.join(cwd, "deebleData.txt")
+    try:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
+            for line in file:
+                count += line.count(separator)
+        return count
+    except FileNotFoundError:
+        print(f"Error: The file at {file_path} was not found.")
+        return 0
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return 0
+
+# Example usage:
+# file_path = "example.txt"
+# print(f"The separator appears {count_separator_in_file(file_path)} times.")
+
+
 
 
 if __name__ == "__main__":
-    # text, url = pageTextExtract("https://www.macewan.ca/academics/academic-departments/anthropology-economics-political-science/our-people/economics/profile/?profileid=liy257")
-    # print(text)
-    start_time = time.time()
-    pages = get_all_pages("https://www.macewan.ca", 4000)
-    end_time = time.time()
-    duration_seconds = end_time - start_time
-    hours = int(duration_seconds // 3600)
-    minutes = int((duration_seconds % 3600) // 60)
-    print(f"Pages found: {pages}")
-    print(f"Pages found: {len(pages)}")
-    print(f"Completed in {hours} hours and {minutes} minutes")
-    linkToText_new(pages)
+    # start_time = time.time()
+    # pages = get_all_pages("https://www.macewan.ca/home", 3000)
+    # end_time = time.time()
+    # duration_seconds = end_time - start_time
+    # hours = int(duration_seconds // 3600)
+    # minutes = int((duration_seconds % 3600) // 60)
+    # print(f"Pages found: {pages}")
+    # print(f"Pages found: {len(pages)}")
+    # print(f"Completed in {hours} hours and {minutes} minutes")
+    # start_time_2 = time.time()
+    # cwd = os.path.dirname(os.path.realpath(__file__))
+    # filepath = os.path.join(cwd, "deebleData.txt")
+    # texts = get_text_from_multiple_pages(pages, filepath, 5)
+    # end_time_2 = time.time()
+    # duration_seconds_2 = end_time_2 - start_time_2
+    # hours_2 = int(duration_seconds_2 // 3600)
+    # minutes_2 = int((duration_seconds_2 % 3600) // 60)
+    # print(f"Pages found: {pages}")
+    # print(f"Pages found: {len(pages)}")
+    # print(f"Completed in {hours} hours and {minutes} minutes")
+    # print(f"Completed in {hours_2} hours and {minutes_2} minutes")
+
+
+    #urls = ["https://www.macewan.ca/academics/academic-departments/computer-science/our-people/profile/?profileid=elhajjm", "https://www.macewan.ca/academics/academic-departments/anthropology-economics-political-science/our-people/economics/profile/?profileid=liy257",  "https://www.macewan.ca/about-macewan/research/contact-us/"]
 
     link = "https://calendar.macewan.ca/pdf/2024-2025N.pdf"
     plip = pageTextExtract_bs4(link)
 
     cwd = os.path.dirname(os.path.realpath(__file__))
-    filepath = os.path.join(cwd, "MacewanData.txt")
+    filepath = os.path.join(cwd, "deebleData.txt")
     with open(filepath, "a", encoding='utf-8') as file:
         file.write(plip[0])
     print("DONE")
