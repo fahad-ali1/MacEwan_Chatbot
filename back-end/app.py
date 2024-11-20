@@ -1,78 +1,3 @@
-#  ------------- the following code is to test with OpenAI, pinecone data -------------
-# from fastapi import FastAPI, HTTPException
-# from fastapi.responses import JSONResponse
-# from fastapi.middleware.cors import CORSMiddleware
-# from pinecone import Pinecone
-# from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-# from langchain_community.vectorstores import Pinecone as PineconeVectorStore
-# from langchain_core.prompts import ChatPromptTemplate
-# from langchain.chains.combine_documents import create_stuff_documents_chain
-# from langchain.chains import create_retrieval_chain
-# from dotenv import load_dotenv
-# import os
-
-
-# # Load environment variables
-# load_dotenv()
-# open_ai_key = os.getenv("OPENAI_API_KEY")
-# pinecone_api_key = os.getenv("PINECONE_API_KEY")
-
-# # Initialize FastAPI app
-# app = FastAPI()
-
-# # Configure CORS
-# origins = ["chrome-extension://*"]
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# # Initialize OpenAI embeddings and Pinecone client
-# embeddings = OpenAIEmbeddings()
-# pc = Pinecone(api_key=pinecone_api_key)
-# index_name = "macewan-vectors-openaiembeddings"
-
-# # Create Pinecone Vector Store
-# vector_store = PineconeVectorStore.from_existing_index(index_name=index_name, embedding=embeddings)
-
-# # Initialize language model
-# llm = ChatOpenAI(api_key=open_ai_key, model="gpt-4o-mini", temperature=0)
-
-# # Define prompt template
-# prompt_template = """
-#     Answer the following question based only on the provided context. 
-#     Think step by step before providing a detailed answer. If you cannot give an answer, say you do not have the answer.
-#     <context>
-#     {context}
-#     </context>
-#     Question: {input}
-# """
-# prompt = ChatPromptTemplate.from_template(prompt_template)
-
-# # Create document chain and retriever
-# document_chain = create_stuff_documents_chain(llm, prompt)
-# retriever = vector_store.as_retriever(search_kwargs={"k": 8})
-
-# # Combine retriever and document chain into a retrieval chain
-# retrieval_chain = create_retrieval_chain(retriever, document_chain)
-
-# # Define endpoint for handling queries
-# @app.get("/query/")
-# async def query_chat_bot(query: str):
-#     try:
-#         response = retrieval_chain.invoke({"input": query})
-#         return JSONResponse(content={"response": response['answer']})
-    
-#     except Exception as e:
-#         import traceback
-#         print(f"An error occurred: {str(e)}")
-#         print("Traceback:", traceback.format_exc())
-#         raise HTTPException(status_code=500, detail=str(e))
-
-# ------------- the following code is to using Cohere LLM, Pinecone, Hugginface Embeddings and Langchain -------------
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -147,11 +72,11 @@ retriever = vector_store.as_retriever(
 
 # Define prompt to contextualize user questions
 contextualize_q_system_prompt = (
-    "Only answer based on the documents, no external information."
+    "Only answer based on the documents, no external information. List up to three sources as the URL from the context."
     "Given a chat history and the latest user question, "
     "which might reference context in the chat history, "
     "formulate a standalone question understandable without the history. "
-    "Do NOT answer the question, just reformulate i t or return it as is."
+    "Do NOT answer the question, just reformulate it or return it as is."
 )
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -170,6 +95,7 @@ history_aware_retriever = create_history_aware_retriever(
 # Define system prompt for Q&A
 system_prompt = (
     "You are an assistant for university answer questions to students, do not mention the context or text in your response."
+    "List up to three sources as the URL from the context."
     "Only answer based on the context, no external information. Be ethical, do not allow plagirism, do not write assignments or exams for students."
     "Use the following retrieved context to answer the question only, no external information at all. You may use external information if it directly relates to macewan university."
     "If you don't know the answer, say you cannot answer your question."

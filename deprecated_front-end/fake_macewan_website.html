@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MacEwan University</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <h1>Welcome to MacEwan University</h1>
+    <!-- Chatbot Toggler Button -->
+    <button class="chatbot-toggler" aria-label="Chatbot Toggle">
+      <span class="material-symbols-outlined">mode_comment</span>
+      <span class="material-symbols-outlined">close</span>
+    </button>
+
+    <!-- Chatbot Container -->
+    <div class="chatbot-container">
+      <header>
+        <h3>MacEwan Assistant</h3>
+        <button id="clear-btn"><i class="fas fa-sync-alt"></i></button>
+      </header>
+      <div id="chat-area" class="chat-area">
+        <div class="chat bot-message">
+          <span class="material-symbols-outlined">smart_toy</span>
+          <p>Hi there! How can I help you today?</p>
+        </div>
+      </div>
+      <div class="input-container">
+        <textarea
+          id="user-input"
+          placeholder="Type your message here..."
+          required
+        ></textarea>
+        <button id="send-btn" aria-label="Send Message">
+          <i class="fas fa-arrow-up"></i>
+        </button>
+      </div>
+      <div class="typing-indicator" style="display: none">Typing...</div>
+    </div>
+
+    <script type="module" src="chatArea.js"></script>
+    <script type="module" src="eventListeners.js"></script>
+    <script type="module" src="chatbotAPI.js"></script>
+    <script type="module" src="chatbot.js"></script>
+  </body>
+</html>
