@@ -65,7 +65,7 @@ const Chatbot = () => {
     setUserInput("");
 
     try {
-      const response = (await fetchResponse(userInput, sessionId));
+      const response = await fetchResponse(userInput, sessionId);
       const data = await response.json();
       appendMessage(
         data.response || "No response available. Try again later.",

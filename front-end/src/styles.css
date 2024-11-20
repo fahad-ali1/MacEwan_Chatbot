@@ -21,8 +21,9 @@ body {
   position: fixed;
   bottom: 3%;
   right: 3%;
-  height: 3rem;
-  width: 3rem;
+  font-size: large;
+  height: 4rem;
+  width: 4rem;
   background: #380e14;
   color: #fff;
   border: none;
@@ -82,8 +83,8 @@ body {
 
 #clear-btn {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 1.2rem;
+  right: 1.2rem;
   background: none;
   border: none;
   color: white;
@@ -124,7 +125,7 @@ body {
   color: #000;
   padding: 0.75rem 1rem;
   border-radius: 1rem 1rem 0 1rem;
-  max-width: 75%;
+  max-width: 85%;
   text-align: left;
 }
 
@@ -137,7 +138,7 @@ body {
   color: #000;
   padding: 0.75rem 1rem;
   border-radius: 1rem 1rem 1rem 0;
-  max-width: 75%;
+  max-width: 85%;
   text-align: left;
 }
 
@@ -165,6 +166,7 @@ body {
 }
 
 .input-container button {
+  margin-right: 0.5rem;
   flex-shrink: 0;
   height: 2.5rem;
   background-color: #380e14;
