@@ -1,7 +1,7 @@
 
-# MacEwan_Chatbot_ChromeExtension
+# MacEwan Chatbot Assistant
 
-This project contains both the backend (Python FastAPI server) and the frontend (Chrome extension) for the MacEwan chatbot assitant.
+This project comprises a backend (Python FastAPI server) and a frontend (React-based web application) for the MacEwan chatbot assistant.
 
 ## Table of Contents
 
@@ -18,17 +18,24 @@ This project contains both the backend (Python FastAPI server) and the frontend 
 ## Project Structure
 
 ```
-MacEwan_Chatbot_ChromeExtension
+MacEwan_Chatbot_Assistant
 ├── back-end/
 │   ├── chat_bot/
-│   │   ├── tests/
 │   │   ├── crawlers/
 │   ├── app.py
+│   ├── vector_store.py
 │   └── .env
 ├── front-end/
-│   ├── chrome_extension/
-│   │   ├── popup/
-│   ├── manifest.json
+│   ├── public/
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   ├── src/
+│   │   ├── components/
+│   │   ├── App.js
+│   │   ├── index.js
+│   │   └── styles.css
+│   ├── package.json
+│   ├── package-lock.json
 ├── venv/
 ├── .gitignore
 ├── README.md
@@ -38,7 +45,8 @@ MacEwan_Chatbot_ChromeExtension
 ## Requirements
 
 - **Python 3.8+**
-- **Google Chrome Browser**
+- **Node.js 14++**
+- **npm 6++**
   
 ## Setting up the Virtual Environment on your machine
 
@@ -83,10 +91,12 @@ The backend is powered by FastAPI and integrates with OpenAI APIs, along with la
 Create a `.env` file in the `back-end/` directory. Add the necessary environment variables like:
 
 ```
-OPENAI_API_KEY=your_openai_api_key_here
+HUGGINGFACE_API_TOKEN=your_api_key_here
+PINECONE_API_KEY=your_api_key_here
+COHERE_API_KEY=your_api_key_here
 ```
 
-### Step 2: Running the Backend Server
+### Step 2: Running the Backend Server Locally
 
 Once the virtual environment is active and dependencies are installed, go to the back-end directory and execute the FastAPI server using `uvicorn`:
 
@@ -94,31 +104,34 @@ Once the virtual environment is active and dependencies are installed, go to the
 uvicorn back-end.app:app --reload
 ```
 
-- **The backend will be available at**: `http://127.0.0.1:8000`
+- **The backend will be available at local address **: `http://127.0.0.1:8000`
 
 ## Frontend Setup and Running
 
 If you want to change the way the chrome extension looks, you may do so with the following instructions.
 
-The frontend is a Chrome extension that interacts with the backend API.
+### Step 1: Install Dependencies
+Navigate to the front-end/ directory and run the following command to install the required Node.js dependencies:
 
-### Step 1: Load the Chrome Extension
+```bash
+npm install
+npm start
+```
 
-1. Open Chrome and navigate to `chrome://extensions/`.
-2. Enable **Developer mode** (toggle at the top right).
-3. Click on **Load unpacked** and select the `front-end/chrome_extension/` directory.
-
-### Step 2: Interacting with the Chrome Extension
-
-1. Once loaded, the Chrome extension will appear as an icon next to the address bar.
-2. Click the icon to open the extension popup. It will send requests to the backend API and get information integrating the ChatGPT LLM.
+The frontend will be accessible at http://localhost:3000 and your local internet address.
 
 ## Running Both Backend and Frontend Together
 
-To test both front and back end locally:
+Start the Backend:
+    
+  Activate the Python virtual environment and run the FastAPI server as mentioned in the Backend Setup and Running section.
 
-1. **Start the local backend** by running the FastAPI server as described above.
-2. **Load the Chrome extension** into your browser.
-3. Use the extension popup to interact with the chatbot, which will send requests to the backend server.
+Start the Frontend:
+
+  Navigate to the front-end/ directory and start the React development server as mentioned in the Frontend Setup and Running section.
+
+Interaction:
+
+  The React frontend will send API requests to the backend running at http://127.0.0.1:8000 (or any other backend server you change to).
 
 ## Images
