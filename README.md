@@ -44,7 +44,7 @@ MacEwan_Chatbot_Assistant
 
 ## Requirements
 
-- **Python 3.8+**
+- **Python 3.12**
 - **Node.js 14++**
 - **npm 6++**
   
@@ -57,7 +57,7 @@ To run the backend services and manage Python dependencies efficiently, it’s r
 In the root directory of the project, run the following command:
 
 ```bash
-python -m venv venv
+python3.12 -m venv venv
 ```
 
 ### Step 2: Activating the Virtual Environment
