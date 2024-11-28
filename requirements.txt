@@ -1,0 +1,8 @@
+selenium
+fastapi
+pinecone
+langchain_cohere
+langgraph
+langchain_huggingface
+langchain_pinecone
+uvicorn
