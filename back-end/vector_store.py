@@ -6,15 +6,9 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_pinecone import PineconeVectorStore
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from datetime import datetime
-import re
 
 # Load environment variables
 load_dotenv()
-
-def extract_urls(content):
-    """Extract URLs from the text content."""
-    url_pattern = r'(https?://[^\s]+)'
-    return re.findall(url_pattern, content)
 
 def main():
     pinecone_api_key = os.getenv("PINECONE_API_KEY")
@@ -47,10 +41,6 @@ def main():
     with open("back-end/chat_bot/crawlers/MacewanData.txt", "r", encoding="utf-8") as file:
         content = file.read()
 
-    # Extract URL sources from text
-    print("Extracting URLs...")
-    urls = extract_urls(content)
-
     # Split the text into chunks
     print("Splitting text into chunks...")
     text_splitter = RecursiveCharacterTextSplitter(
@@ -60,11 +50,10 @@ def main():
     )
     docs_chunks = text_splitter.split_text(content)
 
-    # Create metadata with timestamps and source (URL) for each document chunk
-    print("Creating metadata with timestamps and sources...")
+    # Create metadata with timestamps for each document chunk
+    print("Creating metadata with timestamps...")
     timestamps = [datetime.now().strftime("%Y-%m-%d T%H:%M:%S") for _ in docs_chunks]
-    sources = urls[:len(docs_chunks)]  
-    metadatas = [{"timestamp": ts, "source": src} for ts, src in zip(timestamps, sources)]
+    metadatas = [{"timestamp": ts} for ts in timestamps]
 
     print("Creating Pinecone Vector Store from text chunks...")
     PineconeVectorStore.from_texts(docs_chunks, embeddings, metadatas=metadatas, index_name=index_name)
