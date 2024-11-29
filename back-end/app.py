@@ -24,18 +24,16 @@ from typing import Sequence
 # Load environment variables
 load_dotenv()
 
-# CORS middleware to allow Chrome extension requests
-origins = ["*"]
-
 # Initialize FastAPI app
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["https://macewan-chatbot-backend.onrender.com",
+                   "http://localhost"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["*"], 
 )
 
 # Load API keys from environment variables
