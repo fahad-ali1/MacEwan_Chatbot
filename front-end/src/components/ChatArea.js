@@ -24,7 +24,7 @@ export const getSessionId = () => {
 // Fetch a response from backend api
 export const fetchResponse = async (userInput, sessionId) => {
   const response = await fetch(
-    `https://macewan-chatbot-backend.onrender.com:10000/query/?query=${encodeURIComponent(
+    `https://macewan-chatbot-backend.onrender.com/query/?query=${encodeURIComponent(
       userInput
     )}&session_id=${sessionId}`,
     {
