@@ -165,7 +165,7 @@ body {
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.input-container button {
+.input-container .send-button {
   margin-right: 0.5rem;
   flex-shrink: 0;
   height: 2.5rem;
@@ -181,12 +181,12 @@ body {
   transition: background-color 0.3s ease;
 }
 
-.input-container button:hover {
+.input-container .send-button:hover {
   background-color: #4c2029;
   cursor: pointer;
 }
 
-.input-container button:disabled {
+.input-container .send-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
