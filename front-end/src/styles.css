@@ -170,7 +170,7 @@ body {
   overflow-y: hidden
 }
 
-.input-container button {
+.input-container .send-button {
   margin-right: 0.5rem;
   flex-shrink: 0;
   height: 2.5rem;
@@ -186,12 +186,12 @@ body {
   transition: background-color 0.3s ease;
 }
 
-.input-container button:hover {
+.input-container .send-button:hover {
   background-color: #4c2029;
   cursor: pointer;
 }
 
-.input-container button:disabled {
+.input-container .send-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
 }
