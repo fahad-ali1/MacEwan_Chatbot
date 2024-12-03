@@ -24,18 +24,15 @@ from typing import Sequence
 # Load environment variables
 load_dotenv()
 
-# CORS middleware to allow Chrome extension requests
-origins = ["*"]
-
 # Initialize FastAPI app
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "OPTIONS"],
+    allow_headers=["*"], 
 )
 
 # Load API keys from environment variables
@@ -72,11 +69,11 @@ retriever = vector_store.as_retriever(
 
 # Define prompt to contextualize user questions
 contextualize_q_system_prompt = (
-    "Only answer based on the documents, no external information and list up to three sources as the URL from the context at the end of your answer."
     "Given a chat history and the latest user question, "
     "which might reference context in the chat history, "
     "formulate a standalone question understandable without the history. "
-    "Do NOT answer the question, just reformulate it or return it as is."
+    "Only answer based on the context, no external information unless it pertains to MacEwan"
+    "List up to three sources as the URL from the context at the end of your answer."
 )
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -94,16 +91,14 @@ history_aware_retriever = create_history_aware_retriever(
 
 # Define system prompt for Q&A
 system_prompt = (
-    '''You are an assistant for answering questions about university-related topics. Your role is to provide answers based solely on the retrieved documents. 
-
-    - **Always cite up to three sources** that were used to derive your answer, formatted as URLs or titles from the context provided.
-    - If the context lacks enough information to answer, say: "I cannot answer your question based on the available information."
-    - Be concise and professional in your answers.
-    - Do not use external information unless it directly relates to MacEwan University.
-    - Do not assist in unethical activities such as writing assignments or exams for students.
-
-    Context provided for this query is:
-    {context}'''
+    "You are an assistant for university answer questions to students, do not mention the context or text in your response."
+    "List up to three sources as the URL from the context."
+    "Only answer based on the context, no external internet information unless it pertains to MacEwan."
+    "Be ethical, do not allow plagirism, do not write assignments or exams for students."
+    "Keep the answer concise."
+    "Use the following retrieved context to answer the question only."
+    "\n\n"
+    "{context}"
 )
 
 # Create Q&A prompt template
