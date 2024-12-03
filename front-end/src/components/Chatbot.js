@@ -40,8 +40,7 @@ const Chatbot = () => {
 
   // Append a message to the chat area depending on text and sender
   const appendMessage = (text, sender) => {
-    setMessages((Message) => [...Message, { text, sender }]);
-  };
+    setMessages((messages) => [...messages, { text: text, sender }]); };
 
   // handle user input
   const handleInputChange = (txt) => setUserInput(txt.target.value);
