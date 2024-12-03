@@ -14,7 +14,12 @@ const InputArea = ({
       placeholder="Type your message ..."
       disabled={isDisabled}
     />
-    <button onClick={sendMessage} disabled={isDisabled} title="Send message">
+    <button
+      className="send-button"
+      onClick={sendMessage}
+      disabled={isDisabled}
+      title="Send message"
+    >
       ➡
     </button>
   </div>
