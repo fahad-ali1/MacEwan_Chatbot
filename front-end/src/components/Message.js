@@ -1,13 +1,22 @@
-import {marked} from 'marked'
-import DOMPurify from 'dompurify'
-// This component creates the bot message icon
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+
+// Customize DOMPurify to remove unnecessary tags
+DOMPurify.addHook('afterSanitizeAttributes', (node) => {
+  // Remove empty tags
+  if (node.tagName === 'P' && !node.textContent.trim()) {
+    node.parentNode.removeChild(node);
+  }
+});
+
 const Message = ({ message }) => {
-  let content; 
-  if (message.sender === "bot") { const htmlText = marked(message.text); // Convert Markdown to HTML 
-    const sanitizedHtml = DOMPurify.sanitize(htmlText); // Sanitize the HTML 
-    content = <p dangerouslySetInnerHTML={{ __html: sanitizedHtml }}></p>; 
-  } else { 
-    content = <p>{message.text}</p>;
+  let content;
+  if (message.sender === "bot") {
+    const htmlText = marked(message.text); // Convert Markdown to HTML
+    const sanitizedHtml = DOMPurify.sanitize(htmlText); // Sanitize the HTML
+    content = <div className="markdown-container" dangerouslySetInnerHTML={{ __html: sanitizedHtml }}></div>;
+  } else {
+    content = <p className="markdown-container">{message.text}</p>;
   }
 
   return (
@@ -20,7 +29,6 @@ const Message = ({ message }) => {
           smart_toy
         </span>
       )}
-      
       {content}
     </div>
   );
