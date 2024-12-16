@@ -1,4 +1,10 @@
-// This component is the header of the chat window. It contains the title of the chat window and a button to clear the chat.
+/**
+ * ChatHeader Component
+ * Displays the chat header with a title and a button to clear the chat.
+ *
+ * Props:
+ * - clearChat: Function to clear the chat history.
+ */
 const ChatHeader = ({ clearChat }) => (
   <header>
     <h3>MacEwan Assistant</h3>

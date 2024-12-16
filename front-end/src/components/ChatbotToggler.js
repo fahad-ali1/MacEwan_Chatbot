@@ -1,8 +1,21 @@
-/* This component is a button that toggles the visibility of the chatbot. 
-It displays a chat icon when the chatbot is not visible and a close icon when the chatbot is visible. */
+/**
+ * ChatbotToggler Component
+ * Displays a toggle button to show or hide the chatbot interface.
+ *
+ * Props:
+ * - isChatVisible: (boolean) Indicates if the chatbot is currently visible.
+ * - toggleChatVisibility: (function) Toggles the visibility state of the chatbot.
+ */
+
 const ChatbotToggler = ({ isChatVisible, toggleChatVisibility }) => (
-  <button className="chatbot-toggler" onClick={toggleChatVisibility}>
-    {isChatVisible ? "❌" : "💬"}
+  <button
+    className="chatbot-toggler"
+    onClick={toggleChatVisibility} // Toggles chatbot visibility
+    aria-label={isChatVisible ? "Close chatbot" : "Open chatbot"}
+    title={isChatVisible ? "Close chatbot" : "Open chatbot"}
+  >
+    {isChatVisible ? "❌" : "💬"}{" "}
+    {/* Shows close icon when visible, chat icon otherwise */}
   </button>
 );
 

@@ -5,6 +5,12 @@ import ChatHeader from "./ChatHeader.js";
 import ChatbotToggler from "./ChatbotToggler.js";
 import InputArea from "./InputArea.js";
 
+/**
+ * Chatbot Component
+ * Renders the chatbot interface, including the message area, input area, and visibility toggler.
+ * Manages chatbot state, message handling, and interactions with local storage and backend services.
+ */
+
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     { text: "Hi there! How can I help you today?", sender: "bot" },
@@ -17,56 +23,81 @@ const Chatbot = () => {
   const chatAreaRef = useRef(null);
   const sessionId = getSessionId();
 
+  /**
+   * Toggles the chatbot's visibility state.
+   */
   const toggleChatVisibility = () => {
     setIsChatVisible((visible) => !visible);
   };
 
-  // Scroll to the bottom whenever a message sent
+  /**
+   * Scrolls the chat area to the latest message when messages change.
+   */
   useEffect(() => {
     if (chatAreaRef.current) {
       chatAreaRef.current.scrollTop = chatAreaRef.current.scrollHeight;
     }
   }, [messages]);
 
-  // Load chat history
+  /**
+   * Loads chat history from local storage on component mount.
+   */
   useEffect(() => {
     loadChat(setMessages);
   }, []);
 
-  // Save chat history
+  /**
+   * Saves chat history to local storage whenever messages are updated.
+   */
   useEffect(() => {
     saveChat(messages);
   }, [messages]);
 
-  // Append a message to the chat area depending on text and sender
+  /**
+   * Appends a new message to the chat area.
+   *
+   * @param {string} text - The message text.
+   * @param {string} sender - The sender of the message ("user" or "bot").
+   */
   const appendMessage = (text, sender) => {
-    setMessages((Message) => [...Message, { text, sender }]);
+    setMessages((messages) => [...messages, { text, sender }]);
   };
 
-  // handle user input
+  /**
+   * Updates the userInput state when the user types in the input area.
+   *
+   * @param {Event} txt - The input change event.
+   */
   const handleInputChange = (txt) => setUserInput(txt.target.value);
 
-  // Handle enter key
+  /**
+   * Handles Enter key press for submitting messages.
+   *
+   * @param {Event} e - The key down event.
+   */
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+      e.preventDefault(); // Prevent new line
+      sendMessage(); // Submit message
     }
   };
 
-  // fetch response from backend
+  /**
+   * Sends the user's message to the bot and handles the response.
+   */
   const sendMessage = async () => {
-    if (!userInput) return;
+    if (!userInput.trim()) return; // Prevent empty messages
 
-    appendMessage(userInput, "user");
-    // Typing is disabled while waiting for response
-    setIsTyping(true);
-    setIsDisabled(true);
-    setUserInput("");
+    appendMessage(userInput, "user"); // Add user message to chat
+    setIsTyping(true); // Show typing indicator
+    setIsDisabled(true); // Disable input
+    setUserInput(""); // Clear input field
 
     try {
       const response = await fetchResponse(userInput, sessionId);
       const data = await response.json();
+
+      // Append bot's response to chat
       appendMessage(
         data.response || "No response available. Try again later.",
         "bot"
@@ -76,11 +107,13 @@ const Chatbot = () => {
       appendMessage(error.message || "Error occurred. Try again later.", "bot");
     }
 
-    setIsTyping(false);
-    setIsDisabled(false);
+    setIsTyping(false); // Hide typing indicator
+    setIsDisabled(false); // Re-enable input
   };
 
-  // Clear chat history
+  /**
+   * Clears the chat history from local storage and resets the messages state.
+   */
   const clearChat = () => {
     localStorage.removeItem("chatHistory");
     setMessages([
@@ -90,14 +123,20 @@ const Chatbot = () => {
 
   return (
     <div>
+      {/* Button to toggle chatbot visibility */}
       <ChatbotToggler
         isChatVisible={isChatVisible}
         toggleChatVisibility={toggleChatVisibility}
       />
+
+      {/* Chatbot container */}
       <div
         className={`chatbot-container ${isChatVisible ? "show-chatbot" : ""}`}
       >
+        {/* Chat header */}
         <ChatHeader clearChat={clearChat} />
+
+        {/* Chat area displaying messages */}
         <div id="chat-area" className="chat-area" ref={chatAreaRef}>
           {messages.map((msg, index) => (
             <Message key={index} message={msg} />
@@ -105,19 +144,19 @@ const Chatbot = () => {
           {isTyping && (
             <div className="chat bot-message">
               <span className="material-symbols-outlined">smart_toy</span>
-              <div className="typing-indicator"> . . .</div>
+              <div className="typing-indicator">. . .</div>
             </div>
           )}
         </div>
-        <div className="input-container">
-          <InputArea
-            userInput={userInput}
-            handleInputChange={handleInputChange}
-            handleKeyDown={handleKeyDown}
-            sendMessage={sendMessage}
-            isDisabled={isDisabled}
-          />
-        </div>
+
+        {/* Input area for user messages */}
+        <InputArea
+          userInput={userInput}
+          handleInputChange={handleInputChange}
+          handleKeyDown={handleKeyDown}
+          sendMessage={sendMessage}
+          isDisabled={isDisabled}
+        />
       </div>
     </div>
   );
