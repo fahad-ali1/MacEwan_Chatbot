@@ -59,7 +59,7 @@ vector_store = PineconeVectorStore.from_existing_index(
 )
 
 # Initialize Cohere LLM for chat
-llm = ChatCohere(model="command-r-plus")
+llm = ChatCohere(model="command-r7b-12-2024")
 
 # Configure retriever to retrieve based on similarity score threshold
 retriever = vector_store.as_retriever(
