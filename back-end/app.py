@@ -42,7 +42,10 @@ cohere_api_token = os.getenv("COHERE_API_TOKEN")
 
 # Initialize Pinecone with API key and connect to index
 pc = Pinecone(api_key=pinecone_api_key)
-index_name = "macewan-vectors-huggingface-test"
+index_name = "macewan-vectors-huggingface"
+
+# this one has sources attached as URL, work in progress
+# index_name = "macewan-vectors-huggingface-test" 
 index = pc.Index(index_name)
 
 # HuggingFace embeddings initialization
