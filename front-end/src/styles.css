@@ -105,8 +105,7 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   word-wrap: break-word;
-  border-bottom: rgb(187, 187, 187) solid 1px;
-}
+  border-bottom: rgb(187, 187, 187) solid 1px;}
 
 .chat-area .chat {
   display: flex;
@@ -152,7 +151,7 @@ body {
   display: flex;
   gap: 1rem;
   background-color: white;
-  align-items: center;
+  align-items: center;  
 }
 
 .chatbot-container textarea {
