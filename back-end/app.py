@@ -37,19 +37,20 @@ app.add_middleware(
 
 # Load API keys from environment variables
 pinecone_api_key = os.getenv("PINECONE_API_KEY")
-hf_api_token = os.getenv("HUGGINGFACE_API_TOKEN")  
+hf_api_key = os.getenv("HUGGINGFACE_API_TOKEN")  
 cohere_api_token = os.getenv("COHERE_API_TOKEN")
 
 # Initialize Pinecone with API key and connect to index
 pc = Pinecone(api_key=pinecone_api_key)
-index_name = "macewan-vectors-huggingface"
+index_name = "macewan-vectors-huggingface-test"
 index = pc.Index(index_name)
 
 # HuggingFace embeddings initialization
+model="sentence-transformers/all-MiniLM-L6-v2"
 embeddings = HuggingFaceEndpointEmbeddings(
-    model="sentence-transformers/all-MiniLM-L6-v2",
+    model=model,
     task="feature-extraction",
-    huggingfacehub_api_token=hf_api_token
+    huggingfacehub_api_token=hf_api_key
 )
 
 # Create Pinecone Vector Store from existing index
@@ -59,21 +60,20 @@ vector_store = PineconeVectorStore.from_existing_index(
 )
 
 # Initialize Cohere LLM for chat
-llm = ChatCohere(model="command-r-plus")
+llm = ChatCohere(model="command-r7b-12-2024")
 
 # Configure retriever to retrieve based on similarity score threshold
 retriever = vector_store.as_retriever(
-    search_type="similarity_score_threshold",
-    search_kwargs={"k": 20, "score_threshold": 0.5},
+    search_kwargs={"k": 20},
 )
 
 # Define prompt to contextualize user questions
 contextualize_q_system_prompt = (
-    "Given a chat history and the latest user question, "
-    "which might reference context in the chat history, "
+    "IMPORTANT: Only use information that pertains to MacEwan University. No other universities. "
+    "Given a chat history and the latest user question, which might reference context in the chat history, "
     "formulate a standalone question understandable without the history. "
-    "Only answer based on the context, no external information unless it pertains to MacEwan"
-    "List up to three sources as the URL from the context at the end of your answer."
+    "Only answer based on the context, no external information unless it pertains to MacEwan University. "
+    "List up to three sources as URLs from the context at the end of your answer."
 )
 
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
@@ -91,11 +91,11 @@ history_aware_retriever = create_history_aware_retriever(
 
 # Define system prompt for Q&A
 system_prompt = (
-    "You are an assistant for university answer questions to students, do not mention the context or text in your response."
-    "List up to three sources as the URL from the context."
-    "Only answer based on the context, no external internet information unless it pertains to MacEwan."
-    "Be ethical, do not allow plagirism, do not write assignments, programs or exams for students."
-    "Keep the answer concise."
+    "IMPORTANT: Only use information that pertains to MacEwan University. NO other Universities. "
+    "Answer questions for students based solely on the provided context. Answers must be concise with no fluff added besides answering the question."
+    "Do not mention the context or text in your response. List up to three sources as URLs from the context. "
+    "Be ethical: do not allow plagiarism, and do not write assignments or exams for students. "
+    "Keep answers concise and context-based. "
     "Use the following retrieved context to answer the question only."
     "\n\n"
     "{context}"

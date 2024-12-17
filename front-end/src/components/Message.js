@@ -1,27 +1,27 @@
-import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import { marked } from "marked";
+import DOMPurify from "dompurify";
 
-// Customize DOMPurify to remove unnecessary tags
-DOMPurify.addHook('afterSanitizeAttributes', (node) => {
-  // Remove empty tags
-  if (node.tagName === 'P' && !node.textContent.trim()) {
-    node.parentNode.removeChild(node);
+// DOMPurify customization to remove empty tags
+DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+  if (node.tagName === "P" && !node.textContent.trim()) {
+    node.remove();
   }
 });
 
+/**
+ * Message Component
+ * Renders messages from the bot or user, with Markdown rendering for bot messages.
+ *
+ * @param {Object} message - The message object containing text and sender info.
+ * @returns JSX Element for the message.
+ */
 const Message = ({ message }) => {
-  let content;
-  if (message.sender === "bot") {
-    const htmlText = marked(message.text); // Convert Markdown to HTML
-    const sanitizedHtml = DOMPurify.sanitize(htmlText); // Sanitize the HTML
-    content = <div className="markdown-container" dangerouslySetInnerHTML={{ __html: sanitizedHtml }}></div>;
-  } else {
-    content = <p className="markdown-container">{message.text}</p>;
-  }
+  const isBot = message.sender === "bot";
+  const sanitizedHtml = isBot ? DOMPurify.sanitize(marked(message.text)) : null;
 
   return (
     <div className={`chat ${message.sender}-message`}>
-      {message.sender === "bot" && (
+      {isBot && (
         <span
           className="material-symbols-outlined"
           style={{ alignSelf: "flex-end" }}
@@ -29,7 +29,14 @@ const Message = ({ message }) => {
           smart_toy
         </span>
       )}
-      {content}
+      {isBot ? (
+        <div
+          className="markdown-container"
+          dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+        ></div>
+      ) : (
+        <p className="markdown-container">{message.text}</p>
+      )}
     </div>
   );
 };
