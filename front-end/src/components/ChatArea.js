@@ -60,20 +60,19 @@ export const getSessionId = () => {
  * @throws {Error} If the API call fails or returns an error status.
  */
 export const fetchResponse = async (userInput, sessionId) => {
-  const backendUrl = "https://macewan-chatbot-backend.onrender.com/query";
-  // const backendUrl = `http://0.0.0.0:6584/query/`;
-  const queryParams = `?query=${encodeURIComponent(
-    userInput
-  )}&session_id=${sessionId}`;
-
   try {
-    const response = await fetch(`${backendUrl}${queryParams}`, {
-      method: "GET",
-      headers: {
-        "Session-ID": sessionId,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `https://macewan-chatbot-backend.onrender.com/query/?query=${encodeURIComponent(
+        userInput
+      )}&session_id=${sessionId}`,
+      {
+        method: "GET",
+        headers: {
+          "Session-ID": sessionId,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error(
