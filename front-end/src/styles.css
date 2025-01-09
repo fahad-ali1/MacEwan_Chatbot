@@ -5,6 +5,7 @@
   padding: 0;
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
+  
 }
 
 body {
@@ -15,6 +16,15 @@ body {
   align-items: center;
   justify-content: flex-start;
   padding: 2vh;
+}
+
+#app-container {
+  background-image: url('./images/ExampleMacewanHomepage.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 100vh;
+  width: 100vw;
 }
 
 .chatbot-toggler {

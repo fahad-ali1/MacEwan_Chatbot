@@ -10,3 +10,8 @@ langchain_cohere
 cohere
 langgraph
 python-dotenv
+
+selenium
+BeautifulSoup4
+html2text
+PyPDF2
