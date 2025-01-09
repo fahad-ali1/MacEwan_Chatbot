@@ -5,7 +5,6 @@
   padding: 0;
   box-sizing: border-box;
   font-family: "Poppins", sans-serif;
-  
 }
 
 body {
@@ -19,8 +18,8 @@ body {
 }
 
 #app-container {
-  background-image: url('./images/ExampleMacewanHomepage.jpg');
-  background-size: cover;
+  background-image: url("./images/ExampleMacewanHomepage.jpg");
+  background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   height: 100vh;
@@ -59,7 +58,8 @@ body {
   height: 50vh;
   background-color: white;
   border-radius: 1rem;
-  box-shadow: 0 0 128px rgba(0, 0, 0, 0.1), 0 32px 54px -48px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.7), 0 -20px 40px rgba(0, 0, 0, 0.3),
+    40px 0 80px rgba(0, 0, 0, 0.5), -20px 0 40px rgba(0, 0, 0, 0.3);
   transform: scale(0);
   opacity: 0;
   pointer-events: none;
@@ -115,7 +115,8 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   word-wrap: break-word;
-  border-bottom: rgb(187, 187, 187) solid 1px;}
+  border-bottom: rgb(187, 187, 187) solid 1px;
+}
 
 .chat-area .chat {
   display: flex;
@@ -161,7 +162,7 @@ body {
   display: flex;
   gap: 1rem;
   background-color: white;
-  align-items: center;  
+  align-items: center;
 }
 
 .chatbot-container textarea {
