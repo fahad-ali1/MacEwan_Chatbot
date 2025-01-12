@@ -17,6 +17,15 @@ body {
   padding: 2vh;
 }
 
+#app-container {
+  background-image: url("./images/ExampleMacewanHomepage.jpg");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 100vh;
+  width: 100vw;
+}
+
 .chatbot-toggler {
   position: fixed;
   bottom: 3%;
@@ -49,7 +58,8 @@ body {
   height: 50vh;
   background-color: white;
   border-radius: 1rem;
-  box-shadow: 0 0 128px rgba(0, 0, 0, 0.1), 0 32px 54px -48px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 50px 100px rgba(0, 0, 0, 0.7), 0 -20px 40px rgba(0, 0, 0, 0.3),
+    40px 0 80px rgba(0, 0, 0, 0.5), -20px 0 40px rgba(0, 0, 0, 0.3);
   transform: scale(0);
   opacity: 0;
   pointer-events: none;
@@ -105,7 +115,8 @@ body {
   flex-direction: column;
   gap: 0.5rem;
   word-wrap: break-word;
-  border-bottom: rgb(187, 187, 187) solid 1px;}
+  border-bottom: rgb(187, 187, 187) solid 1px;
+}
 
 .chat-area .chat {
   display: flex;
@@ -151,12 +162,12 @@ body {
   display: flex;
   gap: 1rem;
   background-color: white;
-  align-items: center;  
+  align-items: center;
 }
 
 .chatbot-container textarea {
   flex-grow: 1;
-  height: 2.5rem;
+  max-height: 2.5rem;
   border: 1px solid #ccc;
   outline: none;
   font-size: 1rem;
@@ -223,5 +234,12 @@ body {
   .chatbot-toggler {
     bottom: 5%;
     right: 5%;
+  }
+
+  #app-container {
+    background-image: url("./images/ExampleMacewanHomepagePhone.jpeg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
   }
 }
