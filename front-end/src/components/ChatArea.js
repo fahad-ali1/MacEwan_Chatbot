@@ -61,8 +61,9 @@ export const getSessionId = () => {
  */
 export const fetchResponse = async (userInput, sessionId) => {
   try {
+    // https://macewan-chatbot-backend.onrender.com/query/?query=
     const response = await fetch(
-      `https://macewan-chatbot-backend.onrender.com/query/?query=${encodeURIComponent(
+      `http://127.0.0.1:8000/query/?query=${encodeURIComponent(
         userInput
       )}&session_id=${sessionId}`,
       {

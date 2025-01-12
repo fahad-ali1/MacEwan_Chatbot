@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pinecone import Pinecone
 from dotenv import load_dotenv
 import os
+import openai
+from langchain_community.chat_models import ChatOpenAI
 
 from langchain_cohere import ChatCohere
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
@@ -63,7 +65,9 @@ vector_store = PineconeVectorStore.from_existing_index(
 )
 
 # Initialize Cohere LLM for chat
-llm = ChatCohere(model="command-r7b-12-2024")
+# llm = ChatCohere(model="command-r7b-12-2024")
+llm = ChatOpenAI(model = "gpt-4o-mini", openai_api_key=os.getenv("OPENAI_API_KEY"))
+
 
 # Configure retriever to retrieve based on similarity score threshold
 retriever = vector_store.as_retriever(
@@ -145,9 +149,28 @@ workflow.add_node("model", call_model)
 memory = MemorySaver()
 res = workflow.compile(checkpointer=memory)
 
+# # Error handling function
+# def handle_error(e):
+#     if isinstance(e, TooManyRequestsError):
+#         return JSONResponse(
+#             content={
+#                 "error": "Too many requests",
+#                 "status_code": 429,
+#                 "message": str(e)
+#             },
+#             status_code=429
+#         )
+#     return JSONResponse(
+#         content={
+#             "error": "Internal server error",
+#             "status_code": 500,
+#             "message": str(e)
+#         },
+#         status_code=500
+#     )
 # Error handling function
 def handle_error(e):
-    if isinstance(e, TooManyRequestsError):
+    if isinstance(e, openai.RateLimitError):
         return JSONResponse(
             content={
                 "error": "Too many requests",
